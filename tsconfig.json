@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "incremental": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "paths": {
+      "@metaforge/config-schema": ["./packages/config-schema/src"],
+      "@metaforge/design-tokens": ["./packages/design-tokens/src"],
+      "@metaforge/shared": ["./packages/shared/src"],
+      "@metaforge/types": ["./packages/types/src"]
+    }
+  },
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,169 @@
+// MetaForge Platform Schema
+// This schema defines the platform's own data models (not user-generated apps)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users ───────────────────────────────────────────────────────
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  avatarUrl     String?   @map("avatar_url")
+  passwordHash  String?   @map("password_hash")
+  provider      String    @default("email") // email, google, github
+  providerId    String?   @map("provider_id")
+  role          String    @default("developer") // admin, developer, viewer
+  emailVerified Boolean   @default(false) @map("email_verified")
+  lastLoginAt   DateTime? @map("last_login_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  apps          App[]
+  deploys       Deploy[]
+  apiKeys       ApiKey[]
+
+  @@map("users")
+}
+
+// ─── Applications ────────────────────────────────────────────────
+model App {
+  id            String    @id @default(uuid())
+  name          String
+  description   String?
+  slug          String    @unique
+  status        String    @default("draft") // draft, deploying, live, error, stopped
+  liveUrl       String?   @map("live_url")
+  configVersion Int       @default(1) @map("config_version")
+  configJson    Json?     @map("config_json")
+  
+  // Theme
+  primaryColor  String?   @default("#3B5BDB") @map("primary_color")
+  colorMode     String?   @default("system") @map("color_mode")
+
+  // Owner
+  ownerId       String    @map("owner_id")
+  owner         User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Timestamps
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deployedAt    DateTime? @map("deployed_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  deploys       Deploy[]
+  configHistory ConfigVersion[]
+
+  @@index([ownerId])
+  @@index([slug])
+  @@map("apps")
+}
+
+// ─── Config Version History ──────────────────────────────────────
+model ConfigVersion {
+  id         String   @id @default(uuid())
+  version    Int
+  configJson Json     @map("config_json")
+  changeLog  String?  @map("change_log")
+  
+  appId      String   @map("app_id")
+  app        App      @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([appId, version])
+  @@index([appId])
+  @@map("config_versions")
+}
+
+// ─── Deploys ─────────────────────────────────────────────────────
+model Deploy {
+  id           String   @id @default(uuid())
+  version      Int
+  status       String   @default("pending") // pending, building, deploying, live, failed, rolled-back
+  stages       Json?    // [{name, status, duration, details}]
+  
+  buildLog     String?  @map("build_log")
+  errorMessage String?  @map("error_message")
+  duration     Int?     // milliseconds
+
+  appId        String   @map("app_id")
+  app          App      @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  triggeredBy  String   @map("triggered_by")
+  user         User     @relation(fields: [triggeredBy], references: [id])
+
+  startedAt    DateTime @default(now()) @map("started_at")
+  completedAt  DateTime? @map("completed_at")
+
+  @@index([appId])
+  @@index([triggeredBy])
+  @@map("deploys")
+}
+
+// ─── API Keys ────────────────────────────────────────────────────
+model ApiKey {
+  id        String    @id @default(uuid())
+  name      String
+  keyHash   String    @unique @map("key_hash")
+  prefix    String    // First 8 chars for display: "mf_abc12..."
+  scopes    String[]  // ["apps:read", "apps:write", "data:read"]
+  
+  lastUsedAt DateTime? @map("last_used_at")
+  expiresAt  DateTime? @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("api_keys")
+}
+
+// ─── Workflow Executions ─────────────────────────────────────────
+model WorkflowExecution {
+  id             String   @id @default(uuid())
+  workflowName   String   @map("workflow_name")
+  appId          String   @map("app_id")
+  status         String   @default("running") // running, success, failed, partial
+  
+  triggerType    String   @map("trigger_type")
+  triggerData    Json?    @map("trigger_data")
+  actionResults  Json?    @map("action_results")
+  
+  duration       Int?     // milliseconds
+  errorMessage   String?  @map("error_message")
+
+  startedAt      DateTime @default(now()) @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+
+  @@index([appId])
+  @@index([workflowName])
+  @@map("workflow_executions")
+}
+
+// ─── Notifications ───────────────────────────────────────────────
+model Notification {
+  id        String    @id @default(uuid())
+  type      String    // deploy_success, deploy_failed, workflow_error, system
+  title     String
+  message   String
+  read      Boolean   @default(false)
+  
+  userId    String    @map("user_id")
+  appId     String?   @map("app_id")
+  metadata  Json?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, read])
+  @@map("notifications")
+}

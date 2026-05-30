@@ -1,0 +1,226 @@
+{
+  "$schema": "https://metaforge.dev/schema/v1",
+  "version": "1.0",
+  "app": {
+    "name": "TaskFlow Pro",
+    "description": "A project management application built with MetaForge",
+    "version": "1.0.0"
+  },
+  "entities": [
+    {
+      "name": "projects",
+      "label": "Project",
+      "labelPlural": "Projects",
+      "icon": "folder",
+      "fields": [
+        { "name": "name", "type": "string", "required": true, "label": "Project Name" },
+        { "name": "description", "type": "text", "label": "Description" },
+        { "name": "status", "type": "enum", "enumValues": ["active", "paused", "completed", "archived"], "required": true, "default": "active" },
+        { "name": "startDate", "type": "date", "label": "Start Date" },
+        { "name": "endDate", "type": "date", "label": "End Date" },
+        { "name": "budget", "type": "number", "min": 0, "label": "Budget ($)" }
+      ],
+      "timestamps": true,
+      "softDelete": true
+    },
+    {
+      "name": "tasks",
+      "label": "Task",
+      "labelPlural": "Tasks",
+      "icon": "check-square",
+      "fields": [
+        { "name": "title", "type": "string", "required": true },
+        { "name": "description", "type": "text" },
+        { "name": "priority", "type": "enum", "enumValues": ["low", "medium", "high", "critical"], "required": true, "default": "medium" },
+        { "name": "status", "type": "enum", "enumValues": ["todo", "in-progress", "review", "done"], "required": true, "default": "todo" },
+        { "name": "assigneeEmail", "type": "email" },
+        { "name": "dueDate", "type": "date" },
+        { "name": "estimatedHours", "type": "number", "min": 0 }
+      ],
+      "relations": [
+        { "name": "project", "type": "many-to-one", "target": "projects", "onDelete": "cascade" }
+      ],
+      "timestamps": true,
+      "softDelete": true
+    },
+    {
+      "name": "comments",
+      "label": "Comment",
+      "fields": [
+        { "name": "content", "type": "text", "required": true },
+        { "name": "authorEmail", "type": "email", "required": true }
+      ],
+      "relations": [
+        { "name": "task", "type": "many-to-one", "target": "tasks", "onDelete": "cascade" }
+      ],
+      "timestamps": true
+    }
+  ],
+  "pages": [
+    {
+      "name": "Dashboard",
+      "path": "/",
+      "title": "Dashboard",
+      "layout": "sidebar",
+      "components": [
+        {
+          "type": "grid",
+          "props": { "columns": 4, "gap": 16 },
+          "children": [
+            { "type": "stat", "props": { "label": "Active Projects", "icon": "folder" }, "dataSource": { "entity": "projects", "filters": { "status": "active" } } },
+            { "type": "stat", "props": { "label": "Open Tasks", "icon": "check-square" }, "dataSource": { "entity": "tasks", "filters": { "status": ["todo", "in-progress"] } } },
+            { "type": "stat", "props": { "label": "In Review", "icon": "eye" }, "dataSource": { "entity": "tasks", "filters": { "status": "review" } } },
+            { "type": "stat", "props": { "label": "Completed", "icon": "check-circle" }, "dataSource": { "entity": "tasks", "filters": { "status": "done" } } }
+          ]
+        },
+        {
+          "type": "grid",
+          "props": { "columns": 2, "gap": 16 },
+          "children": [
+            { "type": "chart", "props": { "type": "bar", "title": "Tasks by Status" }, "dataSource": { "entity": "tasks" } },
+            { "type": "chart", "props": { "type": "pie", "title": "Tasks by Priority" }, "dataSource": { "entity": "tasks" } }
+          ]
+        },
+        {
+          "type": "table",
+          "props": { "title": "Recent Tasks", "pageSize": 5 },
+          "dataSource": { "entity": "tasks", "sort": { "field": "createdAt", "direction": "desc" }, "limit": 5 }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "path": "/projects",
+      "title": "Projects",
+      "layout": "sidebar",
+      "components": [
+        {
+          "type": "table",
+          "props": { "title": "All Projects", "searchable": true, "filterable": true },
+          "dataSource": { "entity": "projects" }
+        }
+      ]
+    },
+    {
+      "name": "Tasks Board",
+      "path": "/tasks",
+      "title": "Task Board",
+      "layout": "sidebar",
+      "components": [
+        {
+          "type": "kanban",
+          "props": { "groupField": "status", "title": "Task Board" },
+          "dataSource": { "entity": "tasks" }
+        }
+      ]
+    },
+    {
+      "name": "Task Calendar",
+      "path": "/calendar",
+      "title": "Calendar",
+      "layout": "sidebar",
+      "auth": { "required": true, "roles": ["admin", "manager"] },
+      "components": [
+        {
+          "type": "calendar",
+          "props": { "dateField": "dueDate", "titleField": "title" },
+          "dataSource": { "entity": "tasks" }
+        }
+      ]
+    }
+  ],
+  "navigation": {
+    "type": "sidebar",
+    "logo": { "text": "TaskFlow Pro" },
+    "items": [
+      { "label": "Dashboard", "path": "/", "icon": "home" },
+      { "label": "Projects", "path": "/projects", "icon": "folder" },
+      { "label": "Tasks", "path": "/tasks", "icon": "check-square" },
+      { "label": "Calendar", "path": "/calendar", "icon": "calendar", "roles": ["admin", "manager"] }
+    ]
+  },
+  "auth": {
+    "enabled": true,
+    "providers": [
+      { "type": "email", "enabled": true },
+      { "type": "google", "enabled": true },
+      { "type": "github", "enabled": true }
+    ],
+    "roles": [
+      { "name": "admin", "label": "Administrator", "permissions": ["projects:read", "projects:write", "projects:delete", "tasks:read", "tasks:write", "tasks:delete", "comments:read", "comments:write", "comments:delete"] },
+      { "name": "manager", "label": "Project Manager", "permissions": ["projects:read", "projects:write", "tasks:read", "tasks:write", "comments:read", "comments:write"] },
+      { "name": "member", "label": "Team Member", "permissions": ["projects:read", "tasks:read", "tasks:write", "comments:read", "comments:write"], "isDefault": true },
+      { "name": "viewer", "label": "Viewer", "permissions": ["projects:read", "tasks:read", "comments:read"] }
+    ],
+    "tokenExpiry": { "access": "24h", "refresh": "30d" },
+    "registration": { "enabled": true, "requireEmailVerification": true, "defaultRole": "member" }
+  },
+  "theme": {
+    "primary": "#3B5BDB",
+    "colorMode": "system",
+    "borderRadius": "default"
+  },
+  "workflows": [
+    {
+      "name": "New Task Notification",
+      "description": "Send email when a task is created",
+      "enabled": true,
+      "trigger": { "type": "on_create", "entity": "tasks" },
+      "conditions": [
+        { "type": "field_equals", "field": "priority", "value": "critical" }
+      ],
+      "actions": [
+        {
+          "type": "send_email",
+          "config": {
+            "to": "{{record.assigneeEmail}}",
+            "subject": "Critical task assigned: {{record.title}}",
+            "body": "A critical task has been assigned to you in project {{record.project.name}}."
+          }
+        },
+        {
+          "type": "send_notification",
+          "config": {
+            "title": "Critical Task Created",
+            "message": "{{record.title}} has been assigned to {{record.assigneeEmail}}"
+          }
+        }
+      ],
+      "errorHandling": {
+        "retry": { "maxAttempts": 3, "backoff": "exponential" },
+        "onFailure": "continue"
+      }
+    },
+    {
+      "name": "Weekly Project Report",
+      "enabled": true,
+      "trigger": { "type": "on_schedule", "schedule": "0 9 * * 1" },
+      "actions": [
+        {
+          "type": "export_csv",
+          "config": { "entity": "tasks", "filters": { "status": ["todo", "in-progress"] } }
+        },
+        {
+          "type": "send_email",
+          "config": {
+            "to": "admin@company.com",
+            "subject": "Weekly Task Report",
+            "body": "See attached CSV for open tasks."
+          }
+        }
+      ]
+    }
+  ],
+  "i18n": {
+    "defaultLocale": "en",
+    "locales": ["en", "es", "fr", "de", "ja"]
+  },
+  "settings": {
+    "pwa": {
+      "enabled": true,
+      "name": "TaskFlow Pro",
+      "shortName": "TaskFlow",
+      "themeColor": "#3B5BDB"
+    }
+  }
+}

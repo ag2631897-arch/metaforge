@@ -1,0 +1,23 @@
+{
+  "name": "metaforge",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@11.11.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "dev:studio": "npm run dev --workspace=apps/studio",
+    "dev:api": "npm run dev --workspace=apps/api"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.9.1",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  }
+}

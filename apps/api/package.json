@@ -1,0 +1,45 @@
+{
+  "name": "@metaforge/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset --force"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/core": "^0.41.2",
+    "@fastify/cors": "^9.0.0",
+    "@fastify/multipart": "^8.3.0",
+    "@fastify/rate-limit": "^9.1.0",
+    "@prisma/client": "^5.15.0",
+    "@types/nodemailer": "^8.0.0",
+    "adm-zip": "^0.5.17",
+    "bcryptjs": "^3.0.3",
+    "bullmq": "^5.8.0",
+    "fastify": "^4.28.0",
+    "groq-sdk": "^1.2.1",
+    "ioredis": "^5.4.0",
+    "nodemailer": "^7.0.13",
+    "socket.io": "^4.8.3",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
+    "@types/node": "^20.14.0",
+    "pino-pretty": "^11.2.0",
+    "prisma": "^5.15.0",
+    "tsx": "^4.15.0",
+    "typescript": "^5.4.0"
+  }
+}

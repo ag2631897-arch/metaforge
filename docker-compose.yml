@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: metaforge-postgres
+    environment:
+      POSTGRES_USER: metaforge
+      POSTGRES_PASSWORD: metaforge_dev
+      POSTGRES_DB: metaforge
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U metaforge"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: metaforge-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: metaforge-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: metaforge
+      MINIO_ROOT_PASSWORD: metaforge_dev
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.7
+    container_name: metaforge-meilisearch
+    environment:
+      MEILI_MASTER_KEY: metaforge_dev_key
+      MEILI_ENV: development
+    ports:
+      - "7700:7700"
+    volumes:
+      - meili_data:/meili_data
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  meili_data:

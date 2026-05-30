@@ -1,9 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BACKEND_URL =
-  process.env.API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  'http://localhost:3001/api/v1';
+/**
+ * Resolve the backend API base URL from any of the env var names
+ * the user might have set. Tries all common variations.
+ */
+function getBackendUrl(): string {
+  const candidates = [
+    process.env.NEXT_PUBLIC_API_BASE_URL,
+    process.env.API_BASE_URL,
+    process.env.API_URL,
+  ];
+
+  for (const url of candidates) {
+    if (url) {
+      // Ensure URL ends with /api/v1
+      if (url.endsWith('/api/v1')) return url;
+      if (url.endsWith('/api/v1/')) return url.slice(0, -1);
+      // If it's just the origin (e.g. https://metaforge-nou0.onrender.com)
+      const cleaned = url.endsWith('/') ? url.slice(0, -1) : url;
+      if (!cleaned.includes('/api/')) return `${cleaned}/api/v1`;
+      return cleaned;
+    }
+  }
+
+  return 'http://localhost:3001/api/v1';
+}
+
+const API_BACKEND_URL = getBackendUrl();
 
 /**
  * Next.js API proxy route that forwards all requests from the frontend
@@ -41,8 +64,8 @@ async function proxyRequest(request: NextRequest) {
   // Forward headers including cookies
   const headers = new Headers();
   request.headers.forEach((value, key) => {
-    // Skip host-related headers
-    if (!['host', 'connection', 'content-length'].includes(key.toLowerCase())) {
+    // Skip hop-by-hop headers
+    if (!['host', 'connection', 'content-length', 'transfer-encoding'].includes(key.toLowerCase())) {
       headers.set(key, value);
     }
   });
@@ -81,9 +104,15 @@ async function proxyRequest(request: NextRequest) {
       headers: responseHeaders,
     });
   } catch (error) {
-    console.error('[API Proxy] Failed to reach backend:', error);
+    console.error('[API Proxy] Failed to reach backend at:', targetUrl, error);
     return NextResponse.json(
-      { success: false, error: { code: 'PROXY_ERROR', message: 'Failed to reach API backend' } },
+      {
+        success: false,
+        error: {
+          code: 'PROXY_ERROR',
+          message: `Failed to reach API backend at ${API_BACKEND_URL}`,
+        },
+      },
       { status: 502 }
     );
   }

@@ -3,9 +3,11 @@
   "globalDependencies": ["**/.env.*local"],
   "globalEnv": [
     "NEXT_PUBLIC_API_BASE_URL",
+    "API_BASE_URL",
+    "API_URL",
     "NEXTAUTH_URL",
     "NEXTAUTH_SECRET",
-    "API_URL",
+    "AUTH_SECRET",
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET"
   ],

@@ -93,7 +93,7 @@ export async function appsRoutes(app: FastifyInstance) {
           startedAt: { gte: todayStart },
           ...(user.role === 'admin'
             ? {}
-            : { appId: { in: await prisma.app.findMany({ where: appWhere, select: { id: true } }).then(rows => rows.map(row => row.id)) } }),
+            : { appId: { in: await prisma.app.findMany({ where: appWhere, select: { id: true } }).then((rows: { id: string }[]) => rows.map((row) => row.id)) } }),
         },
       }),
       prisma.deploy.findMany({
@@ -103,7 +103,7 @@ export async function appsRoutes(app: FastifyInstance) {
     ]);
 
     const appStorage = apps.reduce(
-      (sum, item) =>
+      (sum: number, item: any) =>
         sum +
         byteSize({
           name: item.name,
@@ -116,7 +116,7 @@ export async function appsRoutes(app: FastifyInstance) {
     );
 
     const deployStorage = deploys.reduce(
-      (sum, item) =>
+      (sum: number, item: any) =>
         sum +
         byteSize({
           stages: item.stages,
@@ -130,9 +130,9 @@ export async function appsRoutes(app: FastifyInstance) {
       success: true,
       data: {
         totalApps: apps.length,
-        liveApps: apps.filter(item => item.status === 'live').length,
-        draftApps: apps.filter(item => item.status === 'draft').length,
-        deployingApps: apps.filter(item => item.status === 'deploying').length,
+        liveApps: apps.filter((item: any) => item.status === 'live').length,
+        draftApps: apps.filter((item: any) => item.status === 'draft').length,
+        deployingApps: apps.filter((item: any) => item.status === 'deploying').length,
         requestsToday: deploysToday + workflowExecutionsToday,
         storageUsedBytes: appStorage + deployStorage,
         storageUsedLabel: formatBytes(appStorage + deployStorage),

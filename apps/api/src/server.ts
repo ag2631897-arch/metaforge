@@ -42,9 +42,14 @@ async function buildServer() {
     },
   });
 
+  const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
+  if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+  }
+
   // Plugins
   await app.register(cors, {
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: allowedOrigins,
     credentials: true,
   });
 

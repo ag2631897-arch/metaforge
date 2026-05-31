@@ -6,8 +6,7 @@
   "types": "./src/index.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
-    "lint": "eslint src/"
+    "dev": "tsc --watch"
   },
   "dependencies": {
     "zod": "^3.25.76"

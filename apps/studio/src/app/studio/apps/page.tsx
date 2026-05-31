@@ -105,7 +105,7 @@ export default function AppsDashboard() {
     try {
       const [appsRes, statsRes] = await Promise.all([
         fetch(apiUrl("/apps"), { credentials: "include" }),
-        fetch(apiUrl("/apps/stats"), { credentials: "include" }),
+        fetch(apiUrl("/apps/dashboard-metrics"), { credentials: "include" }),
       ]);
 
       const [appsJson, statsJson] = await Promise.all([appsRes.json(), statsRes.json()]);

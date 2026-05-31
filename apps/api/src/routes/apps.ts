@@ -65,7 +65,7 @@ export async function appsRoutes(app: FastifyInstance) {
   });
 
   // Dashboard stats derived from real stored app, deploy, and workflow data.
-  app.get('/apps/stats', async (request) => {
+  app.get('/apps/dashboard-metrics', async (request) => {
     const user = getRequestUser(request);
     const appWhere = getOwnedAppWhere(user);
     const todayStart = getTodayStart();

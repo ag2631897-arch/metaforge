@@ -23,6 +23,8 @@
     "@fastify/multipart": "^8.3.0",
     "@fastify/rate-limit": "^9.1.0",
     "@prisma/client": "^5.15.0",
+    "@types/adm-zip": "^0.5.8",
+    "@types/node": "^20.14.0",
     "@types/nodemailer": "^8.0.0",
     "adm-zip": "^0.5.17",
     "bcryptjs": "^3.0.3",
@@ -32,14 +34,12 @@
     "ioredis": "^5.4.0",
     "nodemailer": "^7.0.13",
     "socket.io": "^4.8.3",
+    "typescript": "^5.4.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@types/adm-zip": "^0.5.8",
-    "@types/node": "^20.14.0",
     "pino-pretty": "^11.2.0",
     "prisma": "^5.15.0",
-    "tsx": "^4.15.0",
-    "typescript": "^5.4.0"
+    "tsx": "^4.15.0"
   }
 }
